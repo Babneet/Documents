@@ -1,0 +1,22 @@
+how to populate a value in non-persistant attribute
+when we want to setup a non-persistent field to display on UI use the INITVALUE method instead of INIT in case of non-persistent fields.
+INITVALUE() for non persistenet and INIT()-Persistenet
+
+what is initValue() and init() methods
+The initValue() method is the first method executed after the MBO constructor. It is typically used to initialize attributes on new records and to set default values.
+The init() method is called after initValue(). It is typically used to set current attribute as read-only based on some condition.
+
+
+The Task associated with an Escalation is instantiated only when a specific condition is met. 
+Where as a Crontask don't check for any conditions to instantiate the job
+Crontask is primarily aimed at executing regular Batch Jobs.
+While Escalation is also a Batch Job, but the primary focus is to facilitate ITIL functionality.
+
+Cron task metthods
+public void init() throws MXException --- is called by the CronTaskManager when the class is instantiated(When consturctor gets called).
+public void start()---is called only when the crontask instance is first loaded and active or when it is reloaded and active.
+public void stop()----is called when an active crontask instance is interupted by a reload request, or when the contask manager is shutting down
+public void cronAction()-----is the “Core” method of this interface where we implement our logic.
+getRunasuserInfo()
+crontaskParamInfo[] getParameters()
+

@@ -1,0 +1,109 @@
+Notes for interview-
+
+AppBean ---Application Beans are the classes that manage an application, such as WOTRACK or ASSET. They control all functionality for the application.
+DataBean control can manage both dialog boxes and tables.
+On dialog boxes you can use DataBean's to control what to do when you press the OK button ( submit() method).
+On tables you can do things such as custom the way to load the MBOSet on that table ( getMboSet() method).
+
+AppBean ->MBOser/MBO -->Field Class
+
+If Sigoption method is not found in App Bean and MBO then it will sercah for action id->App.xml Dialog Id->Libraray.xml Dialogid.
+
+Save Button click --Save(Sig Option)->AppBean--(Capital Save method of AppBean)SAVE()->MBO--save()
+
+Data bean methods - Intialize,Execute
+
+
+Custom Dialog box.
+Form the xml file ->extract app.xml ->attached the custom xml file before the ending tag that is presentation tag-> import the app.xml ->add sig option and give access 
+in security group ->add in the action menu list
+
+
+Conditional UI: Allows to dynamically change the presentation elements for an application based on a combination of the security groups the user belongs to, and the conditional expression being used. For example, if the asset is a type=IT, then the labels will change to “IT Asset”, and if it was another type of asset, the original label will be used instead.
+This can be configured in the Application Designer application through the Configure Conditional properties button of each control properties panel.
+Conditional Signature Options (sigoption): Allows to dynamically grant or revoke the user’s privilege to use a security option base on a conditional expression. For example, if the asset is a type=IT, then the user cannot delete, and if it was another type of asset they can delete the asset.
+This can be configured in the Security Groups application under Applications tab.
+The Sigoptions are often used in conjunction with the conditional UI to further refine rules to the behaviour of specific UI controls.
+Global Data Restrictions: Allows to dynamically hide or make readonly/required specific objects and attributes.
+This can be configured in the Security Groups application Global Data Restrictions menu action.
+Group’s Data Restrictions: Allows to dynamically hide or make readonly/required specific objects and attributes for a specific security group. For example, all contractors can only see Work Order for a nominated contract and staff can see all Work Orders.
+This can be configured in the Security Groups application under Data Restrictions tab.
+
+
+Global data restriction - 
+Object(Hidden,Readonly,Qualified(Display)) and Atrribute(Readonly,Required,Hidden)
+
+The Conditional Expression Manager application is a library of conditional classes and expressions. 
+You can apply the conditions to fields, tabs, and other user interface controls in applications to control the presentation.
+Used in - Domain, Sigoption and security groups commonly
+
+An Mbo represents a record in a table,An MboSet is a collection of Mbo objects.
+The getMboSet method gets a reference the ASSET table.
+The setWhere method specifies the SQL where clause that must be applied to filter data. If the setWhere is not invoked, the entire table will be fetched.
+The getMbo method returns a specific element of the MboSet collection. The first invocation of getMbo method automatically fetches data and initialize the MboSet.
+To modify the value of a field the setValue methods can be used.
+
+
+MBO-
+init(): Called by the framework when the Mbo has been constructed and the MboValues have been initialized.
+add(): This is called when a new Mbo is added to the MboSet. It is called after user defaults have been set from the data dictionary.
+save(): Save the object and other linked objects.
+delete(long accessModifier): Mark the object to be deleted depending on the access modifier. Object is not actually deleted in the database until save() is called.
+deleteAll()
+
+MBOSET-
+canAdd(): Can an object be added to the collection ?
+Custom rules to avoid the addition of new records to the MboSet
+canDelete()
+reset(),clear(),close()
+
+MboValueAdapter/Field Class-(Sometimes when you work with a Mbo in a MboSet and you change fields in a Mbo it can be useful to get the original value of the field before the change or the last value of the field before the change.For that purpose we can use the MboValueAdapter and MboValue classes which are automatically initialized with every Mbo retrieved from the system)
+initValue(): The first method executed after the constructor. Values are already loaded from the database
+init(): Called after initValue()
+validate(): Called when field value is changed (tab-out)
+action(): Called when field value is changed after validate()
+getList():
+hasList():
+
+
+mboSet = mbo.getThisMboSet()
+mboSet = mbo.getMboSet("ASSET") or mboSet = mbo.getMboSet("$WOAPPR", "WORKORDER", "status = 'APPR' and siteid = 'BEDFORD'")
+mboSet = MXServer.getMXServer().getMboSet("WORKORDER", userInfo)
+wo = woSet.getMbo(0)
+wo = woSet.moveFirst() ,(moveNext(), movePrev(), and moveLast()).
+woPos = woSet.getCurrentPosition()
+woSet.setWhere("wonum like '1%'")
+woSet.reset()
+
+field class extends what if it should be used for lookup
+In this scenario you want to write a field validation class on a field which also has a look up attached to it. If you specify DOMAINID and CLASSNAME both in MAXATTRIBUTE table, the custom class or field validation class is never invoked.
+So, if you want a lookup as well as some custom validation and action. You should write a field validation class which extends psdi.mbo.MAXTableDomain.
+or 
+we should override this method and return the MboSet with the values which will be displayed in the lookup.
+public MboSetRemote getList()
+        throws MXException, RemoteException
+
+
+
+methods present in field class and what is purpose of each method
+INIT: This method you can write code to setup the field whenever it is displayed on the UI
+VALIDATE: This method will be called whenever this field is modified. So, like if someone types something from the frontend and tabs out this class is called. Even if someone in some other class sets value to “LEADCRAFT” field and does not set the flag to not call validation (MboConstants.NOVALIDATION), then also the field validation class is called.
+ACTION: You should use this method if based on this field you want to set values on some other fields. One thing to note is ACTION is only called if VALIDATE is successful.
+Apart from the three methods listed above, the other important method in this scenario which become3s available is:
+public MboSetRemote getList()
+        throws MXException, RemoteException
+
+You should override this method and return the MboSet with the values which will be displayed in the lookup.
+INITVALUE :The first method executed after the constructor. Values are already loaded from the database
+
+why we use non-persistent object and attribute
+Nonpersistent attributes are runtime working data, or sometimes data     
+from a different object which is closely associated with this object and
+brought in at runtime for screen display.  DESCRIPTION_LONGDESCRIPTION   
+for example holds the long description text (if any) which is fetched    
+from that table when the main object is instantiated (or for a new item  
+being entered, the long description value which will eventually be saved in the
+longdescription table, if one is entered).  Nonpersistent attributes can also be used as a processing flag
+to determine what actions are to be performed.
+
+

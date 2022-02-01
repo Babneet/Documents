@@ -1,0 +1,339 @@
+AccessLevel of Crons-
+FULL,REaDONLY,MODIDFY ONLY(no addition or deletion)
+
+
+Outbound Flow -> OS(Processing class, User exits)  --> Publish Channels(Processing Class/Processing rule--> User exits)  --> External system(Map everything)
+Inbound Flow --> External system(Map everything)--> Entreprise services(User exits -> Processing Class/Processing rule)-->OS
+
+Processing Class should be applied or wriiten before Processing rule but user exits no issue can be written before or after Processing rules.
+
+OSLC ---Uses SOAP UI ,Connected with Webservices - File Format XML(WSDL)so to use this we need to deploy the files in Maximo sever then it will work 
+Rest API-  JSON introduced, REST API is simple and requires no configuration - and it is ready for you to use after installing Maximo. The REST API is part of the integration framework and can be used to Create, Read, Update and Delete (CRUD) and provides two resource data types: XML or JavaScript Object Notation (JSON) format.
+
+End Points Handler - XMLFILE,HTTP,FLATFILE,WEBSERVICES,SCRIPT
+HTTP HANDLER Main PROPERTIES - HEADERS, HTTPMETHOD,URL ...other the this  PASSWORD,USERENAME,COOKEIE, CONNECTIONTIMEOUT
+
+User exit Class --has irdata and erdata ,main function is setUserValueIn/Out(In and Out based on integartion you want), break Children method 
+REST API are synchronous calls
+
+TO READ MAXIMO SYSTEM PROPERTIES IN A JYTHON SCRIPT 
+from psdi.server import MXServer
+configData = MXServer.getMXServer().getSystemProperties()  
+maxProperty = configData.getProperty("custom.username")
+print maxProperty
+
+ACTION type-
+APPACTION		Application Action
+CHANGESTATUS	Change Status
+CUSTOM			Custom Class
+EXECUTABLE		Command Line Executable
+GROUP			Action Group
+SETVALUE		Set Value
+
+Role-
+Custom Class
+a set of data related to the record
+persongroup 
+personid
+email address
+a set of data related to the login user
+
+
+Automation Script  variables-
+Type - IN,OUT,INOUT
+Binding Type - ATTRIBUTE(Value sourced from an attribute),LITERAL(Literal value entered by user),MAXVAR(Value sourced from a MAXVAR),
+SYSPROP(Value sourced from a system property)
+Checkboxes -Suppress Validation,Suppress Access Control,Suppress Action
+
+Automation Events
+Object-   Validate Application, Intialize,Save,Object creation ,Object Deletion
+Attribute-Run Action ,valiadte,retrive List,Intilaize access restiction,Intialize value
+
+JSON url  - http://maximo_host/maximo/oslc/os/mxperson?oslc.where=personid="CAR%" 
+REST API url -http://maximo_host/maxrest/rest/os/mxperson?personid=CAR%
+
+---------------------
+package custom.app.asset;
+
+import java.rmi.RemoteException;
+
+import psdi.app.asset.Asset;
+import psdi.mbo.MboSet;
+import psdi.util.MXException;
+
+public class AssetCust extends Asset {
+
+  public AssetCust(MboSet ms) throws MXException, RemoteException {
+    super(ms);
+  }
+
+  public void save()throws MXException, RemoteException {
+    super.save();  
+    int id = getInt("ASSETID");
+    String desc = getString("DESCRIPTION");
+    System.out.println("Saving Asset ID=" + id + " desc=" + desc);
+  }
+}
+-----------------
+
+
+AssetSetRemote assetSet = (AssetSetRemote)getMboSet("ASSET");
+assetSet.setWhere("ASSETNUM='1000'");
+AssetRemote asset = (AssetRemote)assetSet.getMbo(0);
+System.out.println("Is rotating: " + asset.isRotating());
+
+------------------------
+
+from psdi.mbo import MboSetRemote
+from psdi.mbo import MboRemote
+from psdi.mbo import MboConstants
+from psdi.util import MXApplicationException
+from psdi.server import MXServer
+
+#Ticket - CR-412 | Author - Upanita  | Upadated the funcionality of Z_JPACTIVEITEM script -Start
+         
+groupUserSet = MXServer.getMXServer().getMboSet("GROUPUSER", MXServer.getMXServer().getSystemUserInfo())
+groupUserSet.setWhere(":&USERNAME& IN ( select userid from maxuser where defsite in (select siteid from site where orgid in (select orgid from organization where orgid in ('1101','1119_MI','1118_BTC','1136_CPS'))))")
+groupUserSet.reset()
+if groupUserSet.count() > 0:
+    if(mbo.getString("SITEID")!=""):
+        invSet=mbo.getMboSet("Z_JPACTINV")
+        if(invSet is not None and invSet.count() > 0):
+            for i in range(0,invSet.count()):
+                inv = invSet.getMbo(i)
+                if inv is not None:
+                    newItemnum=inv.getString("Z_NEWITEMNUM")
+                    if invSet.getMbo(i).getString("STATUS") <> 'ACTIVE' and newItemnum!="":
+                        errorgroup = "JOBPLAN"
+                        errorkey = "InvalidItem"
+                        params=[newItemnum]
+
+---------------------------------
+
+@Override
+public void action() throws MXException, RemoteException
+{
+  super.action();
+
+  String currVal = getMboValue().getString();
+  String oldVal = getMboValue().getPreviousValue().asString();
+  String initialVal = getMboValue().getInitialValue().asString();
+
+  if (!currVal.equals(oldVal))
+  {
+    ...
+  }
+}
+---------
+
+Rapid Java class deployment on WebSphere
+-Rebuild and redeploy (30 minutes)
+	-Copy the custom Java classes under [SMPDIR]\maximo\applications\maximo folder.
+	-Rebuild Maximo EAR.
+	-Redeploy the EAR.
+-Use sync-websphere-maximo.cmd script (10 minutes)
+	-Copy the custom Java classes under [SMPDIR]\maximo\applications\maximo folder.
+	-Run the sync-websphere-maximo.cmd script.
+	-Restart Maximo application server.
+-Rapid approach (6 minutes)
+	-Stop Maximo application server (do this before modifying businessobjects.jar file to avoid corrupting it).
+	-Copy the custom Java classes into MAXIMO.ear folder.
+		-If the class files belongs to maximouiweb module I just copy them in the maximouiweb.war\WEB-INF\classes directory.
+		-If the class files belongs to businessobjects module I open the businessobjects.jar file with 7-Zip (with a right click) and drag and drop the custom class files into the right folders.
+	-Start Maximo application server.
+-Super-fast approach (5 minutes)
+	-Stop Maximo application server.
+	-Go in MAXIMO.ear folder and unzip the businessobjects.jar file into a directory named businessobjects.jar.
+	-Rename the businessobjects.jar file (e.g. businessobjects.orig.jar)
+	-Start Maximo application server and check everything is ok.
+	-Stop Maximo application server.
+	-Copy the custom Java classes into businessobjects.jar or maximouiweb.war subdirectories of MAXIMO.ear folder.
+	-Start Maximo application server.
+Speed-of-light approach (seconds)
+	-Stop Maximo application server.
+	-Go in MAXIMO.ear folder and unzip the businessobjects.jar file into a directory named businessobjects.jar.
+	-Rename the businessobjects.jar file (e.g. businessobjects.orig.jar)
+	-Change WebSphere configuration
+		-Log into the WebSphere web console.
+		-GoTo “Enterprise Application” – MAXIMO – “Class loading and update detection”.
+		-Set “Reload classes when application files are updated” checkbox and set “Pooling interval for updated files” to 5 seconds.
+		-Ensure “Debug Mode” is also enabled on MXServer application server.
+	-Start Maximo application server and check if everything is ok.
+
+Constants for bean class-
+EVENT_STOP_ALL – stops the current event and all other events in the EventQueue from being handled
+EVENT_HANDLED – stops all other controls from handling the event
+EVENT_CONTINUE – allows event to be handled by other controls
+
+Constants for mb/mboset class
+DISCARDABLE – Bit for discardable mbos
+NOACCESSCHECK – Suppress access control checks
+NOACTION – Suppress action of a field
+NOVALIDATION – Suppress validation of a field
+REQUIRED – Set the field required
+
+Annotations   -@Override,@Deprecated
+
+Best way to loop through an MboSet
+for(MboRemote currMbo=mboSet.moveFirst(); currMbo!=null; currMbo=mboSet.moveNext())
+
+Methods of stateful Mbos-
+-canChangeStatus(String changeToStatus, long accessModifier)
+-changeStatus (String status, Date date, String memo)
+-getInternalStatus()
+-getStatusListName()
+
+MaxType mt = new MaxType(MaxType.AMOUNT);
+mt.setValue(10.1234);
+String s = mt.asLocaleString();
+
+------------
+package cust.actions;
+
+import java.rmi.RemoteException;
+import psdi.common.action.ActionCustomClass;
+import psdi.mbo.MboRemote;
+import psdi.util.MXException;
+
+public class SampleAction implements ActionCustomClass
+{
+  public SampleAction()
+  {
+    super();
+  }
+
+  public void applyCustomAction(MboRemote mbo, Object[] params)
+      throws MXException, RemoteException
+  {
+    // Write custom code here
+  }
+}
+------------------
+
+Custom Message 
+APP Bean -
+String params[] ={"Hi there!"};
+clientSession.showMessageBox(
+  clientSession.getCurrentEvent(), "MyGroup", "HelloMsg", params);
+  
+MBOSET/MBO-
+String params[] ={"Hi there!"};
+this.addWarning(new MXApplicationException("MyGroup", "HelloMsg", params));
+
+[SMPDIR]\maximo\applications\maximo\maximouiweb\webmodule\WEB-INF\classes folder
+
+
+User exit classes----
+Preprocessing method for outbound transactions -
+The input to the first outbound user exit point is the XML that is generated by the object structure. 
+If you have an ERP adapter processing class, you can use either the preprocessing method or postprocessing method to implement your custom logic, 
+depending upon your requirement.
+
+Postprocessing method for outbound transactions -
+In the postprocessing method of the user exit, the IR element from the object structure and the ER element from the XML output of the
+processing class are both available for processing.
+
+Preprocessing method for inbound transactions-
+In the preprocessing method for inbound transactions, the input is the XML message that is delivered from the external system. 
+If necessary, you can change data in the message to affect the processing logic in the processing class.
+
+Postprocessing method for inbound transactions-
+In the postprocessing method for inbound transactions, both the IR records and ER records are available for processing.
+
+Business object processing on inbound transactions-
+The user exit class on an enterprise service has an additional method, setUserMboIn, that enables custom processing at the point when 
+the business objects are created from object structure XML, but are not yet saved to the database.
+
+For outbound transactions, a user exit class can have two methods, a preprocessor (setUserValueOut(StructureData irData)) method and 
+a postprocessor (setUserValueOut(StructureData irData,StructureData erData)) method. For inbound transactions(setUserValueIn), 
+the user exit class can have a third method that processes business objects just before they are committed to the database
+
+Indexies -
+You can use indexes to optimize performance for fetching data. Indexes provide pointers to locations of frequently accessed data. 
+You can create an index on the columns in an object that you frequently query.
+You cannot redefine existing indexes. You must delete indexes and re-create their definitions.
+Indexes can be defined only for persistent tables.
+
+Procedures to create-
+From the List tab, select the object to which you want to add an index, and click the Indexes tab.
+In the Indexes table, click New Row.
+In the Index field, specify a value.
+Optional: To make each column in the index unique, select the Enforce Uniqueness check box.
+For IBM® DB2® and SQL Server: Select the Clustered Index check box to create a clustered index. You can have only one clustered index per table.
+Specify a storage partition or accept the default value.
+In the Columns table, click New Row to add a column to the index.
+In the Column field, specify an attribute from the selected object.
+Optional: In the Sequence field, specify the sequence for the column. If you do not specify a value, then the order in which you add columns determines their sequence.
+Optional: Select the Ascending check box to have the index searched in ascending order. If this field is cleared, the index is searched in descending order.
+Click Save Object. The index status will display Add until you configure the database.
+
+
+UPDATE INDEX FOR TEXT command or the SYSPROC.SYSTS_UPDATE
+
+Search type - Text, wild card,None,Exact
+
+Some examples of the purposes and benefits are:
+Unique indexes ----enforce the constraint of uniqueness in your index keys.
+Bidirectional indexes------ allow for scans in both the forward and reverse directions.
+Clustered indexes -----can help improve the performance of queries that traverse the table in key order.
+Expression-based indexes------ efficiently evaluate queries with the indexed expression.
+Unique and non-unique indexes --that help maintain data integrity by ensuring that no two rows of data in a table have identical key values.
+Clustered and non-clustered indexes ----Index architectures are classified as clustered or non-clustered. Clustered indexes are indexes
+ whose order of the rows in the data pages corresponds to the order of the rows in the index. This order is why only one clustered index can exist in any table,
+ whereas, many non-clustered indexes can exist in the table. In some database systems, the leaf node of the clustered index corresponds to the actual data, 
+ not a pointer to data that is found elsewhere.
+Partitioned and nonpartitioned indexes ----Partitioned data can have indexes that are partitioned and nonpartitioned.
+Expression-based indexes ---With expression-based indexes, you can create an index that includes expressions. 
+The performance of queries that involves expressions is improved if the database manager chooses an index that is created on the same expressions.
+
+
+Question
+How to identify unused custom indexes in Maximo db2 database
+
+Cause
+Slow performance, space
+
+Answer
+It is important to monitor the usage of the objects in customized Maximo 7.6 environments. Identifying unused indexes will save space and improve performance. IBM DB2 version 10 offers catalog information that helps to gather information to pinpoint unused objects. Note that unique indexes in Maximo should never be removed.
+Please run the following SQL:
+
+select tbschema,tbname,indschema,indname,lastused
+from syscat.indexes where
+tbschema='MAXIMO' and indschema='MAXIMO'
+order by lastused desc;
+
+Please monitor the environment over a period of time to identify objects that may be deleted.
+
+
+mbo.setFlag(MboConstants.READONLY,True)
+
+The "Always Evaluate?" flag determines whether the result of the Condition is cached in memory or whether a return trip to the database is required each time the Condition is evaluated.
+
+Types of operations in enterprise services-
+Create	Create new Objects
+Delete	Delete existing objects
+Query	Query existing objects
+Sync	Synchronize objects
+Update	Update existing objects
+
+[5:39 PM] Aravind Penugonda
+    => Global data restrictions
+​[5:39 PM] Aravind Penugonda
+    => condition expression manager
+​[5:39 PM] Aravind Penugonda
+    => Methods present in MBO.java
+​[5:39 PM] Aravind Penugonda
+    MBOSet.java
+​[5:40 PM] Aravind Penugonda
+    Field class
+​[5:40 PM] Aravind Penugonda
+    => field class extends what if it should be used for lookup
+​[5:40 PM] Aravind Penugonda
+    => methods present in field class and what is purpose of each method
+​[5:41 PM] Aravind Penugonda
+    => why we use non-persistent object and attribute
+​[5:41 PM] Aravind Penugonda
+    => how t populate alue in non-persistant attribute
+​[5:41 PM] Aravind Penugonda
+    => what is initValue() and init() methods
+	

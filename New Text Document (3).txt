@@ -1,0 +1,114 @@
+These keywords can be used in Database default values only not in Application designer default --- &SYSDATE& ,&USERNAME& ,&AUTOKEY& ,&PERSONID&
+If we poplulate the default values through Application Desginer we'll get more feature like popultaion the values from other fields and applying sigoption to those default values.
+
+Users to run cron task --->run as user ,get user info,admin user
+
+What is Synchronized ----> Multi-threaded programs may often come to a situation where multiple threads try to access the same resources and finally produce erroneous and unforeseen results. 
+So it needs to be made sure by some synchronization method that only one thread can access the resource at a given point of time.
+Java provides a way of creating threads and synchronizing their task by using synchronized blocks. 
+Synchronized blocks in Java are marked with the synchronized keyword. A synchronized block in Java is synchronized on some object. 
+All synchronized blocks synchronized on the same object can only have one thread executing inside them at a time. 
+All other threads attempting to enter the synchronized block are blocked until the thread inside the synchronized block exits the block.
+
+Thread Methods:
+start() – Starts the thread.
+getState() – It returns the state of the thread.
+getName() – It returns the name of the thread.
+getPriority() – It returns the priority of the thread.
+sleep() – Stop the thread for the specified time.
+Join() – Stop the current thread until the called thread gets terminated.
+isAlive() – Check if the thread is alive.
+
+Thread Lifecycle:
+Threads can go through five different status in its life cycle as shown below.
+New: When the thread instance is created, it will be in “New” state.
+Runnable: When the thread is started, it is called “Runnable” state.
+Running: When the thread is running, it is called “Running” state.
+Waiting: When the thread is put on hold or it is waiting for the other thread to complete, then that state will be known as “waiting” state.
+Terminated: When the thread is dead, it will be known as “terminated” state.
+
+CONTINUOUS (for recording things such as run hours and mileage), GAUGE (for recording such things as temps, pressures, levels etc.), 
+and CHARACTERISTIC (for recording such things as color or other characteristics that a worker might observe).
+
+Looging Levels - 
+DEBUG	Logs messages that are useful in debugging
+ERROR	Logs message indicating errors in application functionality
+FATAL	Logs very severe errors messages
+INFO	Logs informational messages
+WARN	Logs messages indicating harmful situations in functionality
+
+Failures Code represent hierarchical structure descrbing the cause of the failure and suggesting the potential solution
+Application - Loc,Asset,WO
+
+psdi.app.asset.AssetSet(MobSet.java)
+psdi.app.asset.AssetSetRemote (Interface)
+===============================
+psdi.app.asset.Asset (MBO.java)
+psdi.app.asset.AssetRemote (Interface)
+
+
+Domains -
+Numeric,Nummeric Range, ALN, Table,Crossover,Synonym(Synonym domains are special domains that are reserved by the system. You cannot add new synonym domains, but you can add new synonym values that are presented to the user.)
+Validation Where Clause: which sets a one to one relationship between the launch field and the key field of the lookup and will setup validation of values manually entered in the field.
+List where: It filters out the rows to be shown from the source table
+
+Itegration script in Automation script ->
+There are two mains object that you can manipulate into the Automation script: irData and erData.
+erData(Inbound): External document, is the document(XML) that you receive on the enterprise service. The manipulation of erData can only be done using XML. (Like JSON).
+irData(Outbound): Internal converted document, is what ends up getting mapped to the mbos(maximo business objects). This is the XML converted into object. So in this case to manipulate the data use the object irData.
+
+FLOW of  IRDATA and ERDATA
+OS provides the irdata to Publish Channnel or invocation Channel .Processing manipulates the irdata and construct a erdata before the message id forwarded to its destination.
+Invocation Channel  transaction can require a response from the external system.Respoonse processing passes the erData element to invocation channel which manipulates the response data
+and constucts the irdata element. 
+
+Dynamic queries in Condition Exp-
+:[relationshipname].[attrname] ----:assetspec.classstructureid 
+:&OWNER&.[attrname]-----:&owner&.jobplan.priority>:&owner&.priority
+:&OWNER&.[relationshipname].[attrname] ---- :&owner&.jobplan.priority>:&owner&.priority
+:$OLD_[attrname]----:&owner&.po.$old_description like ‘%Turbin%’
+
+
+MboValueAdapter class for non loopkup field and MAXtabledomain for lookup field
+
+Synsynchronous---without a queue --- Enterprise services,Invocation channel.
+Asynchronous----with a queue ----Publish Channel,Enterprise services
+Continous queue(Triggered from Class files nothing in the front end,Like Parrellel connection) and Sequential queue (Configured in Webserver ,like series connection, FIFO)
+
+Types of Application- Power App, single Page App, Self service App
+
+Actions in Processing rules
+COMBINE	
+REPLACE	
+SET	
+SKIP
+SKIPCHILDREN
+SKIPRECORD
+SPLIT
+STOP
+
+Integration through automationscript---- Naming Convention -(PublishChannel/Enterpriseservices.ExternalExit/UserExit.In/Out)
+clientEndpoint=Router.getHandler("Z_BUDGET")
+map = HashMap()
+errorResponse = HashMap()                   
+host= "https://apitest-internal.clarios.com"
+url= budgetUrl +"/"+prjId+"/budget?organizationId="+mainOrgId+"&includeWbs=true"
+logger.debug("-----url----"+url)
+map.put("URL",url)
+map.put("ERRORONSTATUS",False)
+map.put("RESPONSE_HEADERS",errorResponse)
+response=String(clientEndpoint.invoke(map,None))
+respCode=int(errorResponse.get("RESPONSE_STATUS"))
+responseObject = JSONObject.parse(response)
+if responseObject.get('projectDetails') is not None:
+	prjDetails=responseObject.get('projectDetails')
+	if prjDetails.get('projectId') is not None:
+		projIdSap=prjDetails.get('projectId')
+        logger.debug("----SAP Project ID--"+projIdSap)
+if responseObject.get('budgetDetails') is not None:
+	budgetDetails=responseObject.get('budgetDetails')
+	remainingSapBudget= float(budgetDetails.get('remainingBudget'))
+    budgetCyCodeSap=budgetDetails.get('budgetCurrency')
+
+com.ibm.tivoli.maximo.script.ScriptCronTask -Parameters(SCRIPTARG,SCRIPTNAME),com.ibm.tivoli.maximo.script.ScriptAction,com.ibm.tivoli.maximo.script.ScriptCustomCondition(scriptname.launchpointname)
+
